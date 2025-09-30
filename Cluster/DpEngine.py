@@ -81,8 +81,8 @@ class DpEngine:
             mut_iter = iter(data.items())
         elif hasattr(data, "iteritems"):
             mut_iter = data.iteritems()
-        elif hasattr(data, "_hist_array"):
-            mut_iter = ((i, v) for i, v in enumerate(data._hist_array))
+        # elif hasattr(data, "_hist_array"):
+        #     mut_iter = ((i, v) for i, v in enumerate(data._hist_array))
         else:
             raise TypeError("Unsupported data type for DpEngine: {}".format(type(data)))
         s_cluster = DP_cluster(self, DP_item(next(mut_iter)[0], self))
@@ -250,8 +250,13 @@ class DpEngine:
         # Flatten for TSNE and summary.
         log_data_flattened = []
 
-        for label, mutation in self.data.items():
-            log_data_flattened.append(mutation.flatten())
+        # NDHistogram has .iteritems(), not .items()
+        if hasattr(self.data, "items"):
+            for label, mutation in self.data.items():
+                log_data_flattened.append(mutation.flatten())
+        elif hasattr(self.data, "iteritems"):
+            for label, mutation in self.data.iteritems():
+                log_data_flattened.append(mutation.flatten())
 
         '''Normalize for TSNE'''
 
