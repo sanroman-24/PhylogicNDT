@@ -76,7 +76,15 @@ class DpEngine:
         if N_iter == 0:
             return None
 
-        mut_iter = iter(data.items())
+        # NDHistogram has .iteritems(), not .items()
+        if hasattr(data, "items"):
+            mut_iter = iter(data.items())
+        elif hasattr(data, "iteritems"):
+            mut_iter = data.iteritems()
+        elif hasattr(data, "_hist_array"):
+            mut_iter = ((i, v) for i, v in enumerate(data._hist_array))
+        else:
+            raise TypeError("Unsupported data type for DpEngine: {}".format(type(data)))
         s_cluster = DP_cluster(self, DP_item(next(mut_iter)[0], self))
 
         for label, mut_hist in mut_iter:
