@@ -1041,7 +1041,13 @@ class PhylogicOutput(object):
         """
         import pandas as pd
         df = pd.DataFrame(trees_mcmc_trace)
-        df = df.sort_values(by='n_iter', ascending=False)
+        # Stable sort: among trees tied on n_iter, preserve insertion order so that
+        # row 0 of the posteriors file is the SAME tree BuildTreeEngine._most_common_tree()
+        # selects as top_tree (it breaks ties by first-inserted). This keeps the pie plot
+        # / tree diagram (which use edges_list[0]) consistent with the constrained CCFs
+        # (computed against top_tree). A non-stable sort can pick a different tied tree,
+        # producing negative pie wedges -> "Wedge sizes 'x' must be non negative values".
+        df = df.sort_values(by='n_iter', ascending=False, kind='mergesort')
         df['edges'] = df['edges'].apply(self.reformat_edges_for_output)
         df = df[['n_iter', 'likelihood', 'edges']]
         output_file = indiv_id + '_build_tree_posteriors.tsv'
